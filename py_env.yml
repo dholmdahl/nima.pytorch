@@ -1,0 +1,23 @@
+name: nima_pytorch
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - Click
+  - numpy
+  - pandas
+  - scikit-learn
+  - tqdm
+  - pytorch
+  - torchvision
+  - tensorboard
+  - aiohttp
+  - future
+  - black
+  - isort
+  - flake8
+  - pytest
+  - pytest-cov
+  - pytest-asyncio
+  - ipython
+  - cudatoolkit=11.1
