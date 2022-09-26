@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import torch
@@ -7,10 +8,11 @@ from torchvision.datasets.folder import default_loader
 from nima.common import Transform, format_output, get_mean_score, get_std_score
 from nima.model import create_model
 
+logger = logging.getLogger(__file__)
 
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
-
+logger.info(f"inference_model using device={device}, cuda={use_cuda}")
 
 class InferenceModel:
     def __init__(self, path_to_model_state: Path):

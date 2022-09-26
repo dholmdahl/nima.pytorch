@@ -46,6 +46,8 @@ def validate_and_test(
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    logger.info(f"trainer using device={device}")
+
     criterion = EDMLoss().to(device)
 
     best_state = torch.load(path_to_model_state)
@@ -111,6 +113,7 @@ class Trainer:
         self.val_loader = val_loader
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        logger.info(f"trainer using self.device={self.device}")
 
         model = create_model(model_type, drop_out=drop_out).to(self.device)
         optimizer = get_optimizer(optimizer_type=optimizer_type, model=model, init_lr=init_lr)
@@ -179,7 +182,7 @@ class Trainer:
             if idx % self.print_freq:
                 log_time = self.print_freq * (e - s)
                 eta = ((total_iter - idx) * log_time) / 60.0
-                print(f"iter #[{idx}/{total_iter}] " f"loss = {loss:.3f} " f"time = {log_time:.2f} " f"eta = {eta:.2f}")
+                logger.info(f"iter #[{idx}/{total_iter}] " f"loss = {loss:.3f} " f"time = {log_time:.2f} " f"eta = {eta:.2f}")
 
         return train_losses.avg
 

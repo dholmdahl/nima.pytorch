@@ -2,6 +2,8 @@ import logging
 from pathlib import Path
 
 import click
+import torch
+import os
 
 from nima.api import run_api
 from nima.clean_dataset import clean_and_split
@@ -11,13 +13,22 @@ from nima.trainer import Trainer, validate_and_test
 
 
 def init_logging() -> None:
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    logging.basicConfig(level=logging.INFO, filename='nima_cli.log', filemode='w', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
+def echo(s) -> None:
+    logging.info(s)
+    click.echo(s)
 
 @click.group()
 def cli():
     pass
 
+@click.command("check-system", short_help="Print system info")
+def check_system():
+    device = "gpu (cuda)" if torch.cuda.is_available() else "cpu"
+    echo(f"Torch will use device={device}.  Recommended number of workers={os.cpu_count()}")
+    # tf.config.list_physical_devices('GPU')
+    torch.zeros(1).cuda()
 
 @click.command("prepare-dataset", short_help="Parse, clean and split dataset")
 @click.option("--path_to_ava_txt", help="origin AVA.txt file", required=True, type=Path)
@@ -28,7 +39,7 @@ def cli():
 def prepare_dataset(
     path_to_ava_txt: Path, path_to_save_csv: Path, path_to_images: Path, train_size: float, num_workers: int
 ):
-    click.echo(f"Clean and split dataset to train|val|test in {num_workers} threads. It will takes several minutes")
+    echo(f"Clean and split dataset to train|val|test in {num_workers} threads. It will takes several minutes")
     clean_and_split(
         path_to_ava_txt=path_to_ava_txt,
         path_to_save_csv=path_to_save_csv,
@@ -36,7 +47,7 @@ def prepare_dataset(
         train_size=train_size,
         num_workers=num_workers,
     )
-    click.echo("Done!")
+    echo("Done!")
 
 
 @click.command("train-model", short_help="Train model")
@@ -64,7 +75,8 @@ def train_model(
     optimizer_type: str,
     seed: int,
 ):
-    click.echo("Train and validate model")
+    echo("Train and validate model")
+    logging.info("Train and validate model")
     set_up_seed(seed)
     trainer = Trainer(
         path_to_save_csv=path_to_save_csv,
@@ -79,7 +91,7 @@ def train_model(
         optimizer_type=optimizer_type,
     )
     trainer.train_model()
-    click.echo("Done!")
+    echo("Done!")
 
 
 @click.command("get-image-score", short_help="Get image scores")
@@ -88,7 +100,7 @@ def train_model(
 def get_image_score(path_to_model_state, path_to_image):
     model = InferenceModel(path_to_model_state=path_to_model_state)
     result = model.predict_from_file(path_to_image)
-    click.echo(result)
+    echo(result)
 
 
 @click.command("validate-model", short_help="Validate model")
@@ -107,7 +119,7 @@ def validate_model(path_to_model_state, path_to_save_csv, path_to_images, batch_
         num_workers=num_workers,
         drop_out=drop_out,
     )
-    click.echo("Done!")
+    echo("Done!")
 
 
 @click.command("run-web-api", short_help="Start server for model serving")
@@ -120,6 +132,7 @@ def run_web_api(path_to_model_state: Path, port: int, host: str):
 
 def main():
     init_logging()
+    cli.add_command(check_system)
     cli.add_command(prepare_dataset)
     cli.add_command(train_model)
     cli.add_command(validate_model)

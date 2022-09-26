@@ -1,10 +1,12 @@
 name: nima_pytorch
 channels:
-  - conda-forge
+  - pytorch
+  - nvidia
+  - defaults
 dependencies:
   - python=3.8
   - Click
-  - numpy
+  - numpy=1.22
   - pandas
   - scikit-learn
   - tqdm
@@ -20,4 +22,4 @@ dependencies:
   - pytest-cov
   - pytest-asyncio
   - ipython
-  - cudatoolkit=11.1
+  - cudatoolkit=11.3.*
